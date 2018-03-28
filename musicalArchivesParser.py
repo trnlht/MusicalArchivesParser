@@ -2,13 +2,14 @@
 # достаёт для каждого архива имя исполнителя/год выпуска альбома/название альбома и создаёт структуру каталогов
 # следующего вида Название исполнителя/Год выпуска альбома - Название альбома/Файлы с композициями
 
-# TODO Добавить другие форматы, кроме mp3
+# TODO Добавить другие форматы, кроме mp3 (?)
 # TODO Протестировать скрипт
 # TODO Добавить консольный интерфейс (?)
 # TODO Если в извлекаемой папке несколько папок с мп3?
 # TODO Рефакторинг
-# TODO Залить в гит
 # TODO Добавить обработку ошибок
+# TODO Перевести все комментарии на английский
+# TODO Добавить файл ридми
 
 import taglib
 import sys
@@ -120,8 +121,7 @@ def parseMusicalArchive(archivePath):
             bandPath = workingDir + '\\' + albumParams['BAND']  # Создаём папку с группой, если её ещё нет
             if not os.path.exists(bandPath):
                 os.mkdir(bandPath)
-            albumName = albumParams['YEAR'] + ' - ' + albumParams['ALBUM']  # Создаём папку с альбомом
-            albumPath = bandPath + '\\' + albumName
+            albumPath = bandPath + '\\' + albumParams['YEAR'] + ' - ' + albumParams['ALBUM']  # Создаём папку с альбомом
             os.mkdir(albumPath)
             moveFiles(mp3FolderPath, albumPath)  # Перемещаем файлы в новую папку
             shutil.rmtree(folderPath)  # Удаляем старую папку
