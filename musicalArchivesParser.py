@@ -22,38 +22,59 @@ import re
 
 # Функция получает год из строки, если года нет - возвращается пустая строка
 def getYearFromString(s):
-	strList = re.findall('[1-2][0-9][0-9][0-9]',s)
-	if strList != []:
-		return strList[0]
-	else:
-		return ''
+    strList = re.findall('[1-2][0-9][0-9][0-9]',s)
+    if strList != []:
+        return strList[0]
+    else:
+        return ''
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
 # Функция получает год выпуска альбома из тегов mp3 файла
 def getYearFromMp3Tags(tags):
-	if 'DATE' in tags and tags['DATE'] != [] and tags['DATE'][0] != '' :
-		return tags['DATE'][0]
-	if 'RELEASEDATE' in tags and tags['RELEASEDATE'] != []:
-		year = getYearFromString(tags['RELEASEDATE'][0])
-		if year != '':
-			return year
-	if 'COPYRIGHT' in tags and tags['COPYRIGHT'] != []:
-		year = getYearFromString(tags['COPYRIGHT'][0])
-		if year != '':
-			return year
-	return ''
-#----------------------------------------------------------------------------------------------------------------------------------		
+    if 'DATE' in tags and tags['DATE'] != [] and tags['DATE'][0] != '' :
+        return tags['DATE'][0]
+    if 'RELEASEDATE' in tags and tags['RELEASEDATE'] != []:
+        year = getYearFromString(tags['RELEASEDATE'][0])
+        if year != '':
+            return year
+    if 'COPYRIGHT' in tags and tags['COPYRIGHT'] != []:
+        year = getYearFromString(tags['COPYRIGHT'][0])
+        if year != '':
+            return year
+    return ''
+#----------------------------------------------------------------------------------------------------------------------------------
+
+# Функция получает название группы из тегов mp3 файла
+def getBandFromMp3Tags(tags):
+    if 'ARTIST' in tags and tags['ARTIST'] != [] and tags['ARTIST'][0] != '':
+        return tags['ARTIST'][0].title()
+    else:
+        return ''
+
+# ----------------------------------------------------------------------------------------------------------------------------------
+
+# Функция получает название альбома из тегов mp3 файла
+def getAlbumFromMp3Tags(tags):
+    if 'ALBUM' in tags and tags['ALBUM'] != [] and tags['ALBUM'][0] != '':
+        return tags['ALBUM'][0].title()
+    else:
+        return ''
+
+
+#----------------------------------------------------------------------------------------------------------------------------------
 
 # Функция получает нужные параметры альбома (Название альбома, Название группы, Год выпуска) из mp3-файла
 def getAlbumParamsFromMp3(mp3Path):
     song = taglib.File(mp3Path)
     albumParams = {}
-    albumParams['ALBUM'] = song.tags['ALBUM'][0].title()
-    albumParams['BAND'] = song.tags['ARTIST'][0].title()
+    albumParams['ALBUM'] = getAlbumFromMp3Tags(song.tags)
+    albumParams['BAND'] = getBandFromMp3Tags(song.tags)
     albumParams['YEAR'] = getYearFromMp3Tags(song.tags)
+    if albumParams['ALBUM'] == '' or albumParams['BAND'] == '' or albumParams['YEAR'] == '':
+        albumParams = {}
     return albumParams
-	
+
 #----------------------------------------------------------------------------------------------------------------------------------		
 
 # Функция ищет в заданной папке папку с mp3, если папки с mp3 нет - возвращается пустая строка
@@ -63,7 +84,7 @@ def findMp3Path(folderPath):
             if file.endswith('.mp3'):
                 return directory
     return ''
-	
+
 #----------------------------------------------------------------------------------------------------------------------------------		
 
 # Функция получает параметры альбома из папки, где лежат mp3-файлы
@@ -73,7 +94,7 @@ def getAlbumParamsFromMp3FolderPath(mp3FolderPath):
             albumParams = getAlbumParamsFromMp3(mp3FolderPath + '\\' + file)
             return albumParams
     return {}
-	
+
 #----------------------------------------------------------------------------------------------------------------------------------		
 
 # Функция перемещает все файлы из одной папки в другую
@@ -85,34 +106,37 @@ def moveFiles(srcDir, dstDir):
 
 # Функция распаковывает архив, извлекает из распакованной папки данные вида Группа/Год/Альбом, создаёт структуру папок вида Группа/Год - Альбом и перемещает туда файлы, старая папка удаляется
 def parseMusicalArchive(archivePath):
-	folderPath = os.path.splitext(archivePath)[0]  # Папка для распаковки (удаляем расширение)
-	os.mkdir(folderPath)
-	try:
-		patoolib.extract_archive(archivePath, outdir=folderPath)
-	except Exception as e:
-		print('Warning: ' + str(e))
-	# os.remove(archivePath)
-	mp3FolderPath = findMp3Path(folderPath)  # Находим папку с mp3 в извлеченной папке
-	if mp3FolderPath != '':
-		albumParams = getAlbumParamsFromMp3FolderPath(mp3FolderPath)  # Получаем параметры альбома
-		bandPath = workingDir + '\\' + albumParams['BAND']  # Создаём папку с группой, если её ещё нет
-		if not os.path.exists(bandPath):
-			os.mkdir(bandPath)
-		albumName = albumParams['YEAR'] + ' - ' + albumParams['ALBUM']  # Создаём папку с альбомом
-		albumPath = bandPath + '\\' + albumName
-		os.mkdir(albumPath)
-		moveFiles(mp3FolderPath, albumPath)  # Перемещаем файлы в новую папку
-		shutil.rmtree(folderPath)  # Удаляем старую папку
-	else:
-		print('Warning: There is no folder with mp3 in ' + folderPath)
+    folderPath = os.path.splitext(archivePath)[0]  # Папка для распаковки (удаляем расширение)
+    os.mkdir(folderPath)
+    try:
+        patoolib.extract_archive(archivePath, outdir=folderPath)
+    except Exception as e:
+        print('Warning: ' + str(e))
+    # os.remove(archivePath)
+    mp3FolderPath = findMp3Path(folderPath)  # Находим папку с mp3 в извлеченной папке
+    if mp3FolderPath != '':
+        albumParams = getAlbumParamsFromMp3FolderPath(mp3FolderPath)  # Получаем параметры альбома
+        if albumParams != {}:
+            bandPath = workingDir + '\\' + albumParams['BAND']  # Создаём папку с группой, если её ещё нет
+            if not os.path.exists(bandPath):
+                os.mkdir(bandPath)
+            albumName = albumParams['YEAR'] + ' - ' + albumParams['ALBUM']  # Создаём папку с альбомом
+            albumPath = bandPath + '\\' + albumName
+            os.mkdir(albumPath)
+            moveFiles(mp3FolderPath, albumPath)  # Перемещаем файлы в новую папку
+            shutil.rmtree(folderPath)  # Удаляем старую папку
+        else:
+            print('Warning: Can not extract album params from ' + mp3FolderPath + '. This folder will not be parsed!')
+    else:
+        print('Warning: There is no folder with mp3 in ' + folderPath)
 
 
 # Функция парсит все архивы в рабочем каталоге
 def parseMusicalArchives(workingDir):
-	for file in os.listdir(workingDir):
-		if file.endswith('.zip') or file.endswith('.rar') or file.endswith('.7z'):
-			archivePath = workingDir + '\\' + file
-			parseMusicalArchive(archivePath)
+    for file in os.listdir(workingDir):
+        if file.endswith('.zip') or file.endswith('.rar') or file.endswith('.7z'):
+            archivePath = workingDir + '\\' + file
+            parseMusicalArchive(archivePath)
 
 #----------------------------------------------------------------------------------------------------------------------------------			
 
@@ -125,7 +149,7 @@ if len(sys.argv) > 1:
 parseMusicalArchives(workingDir)
 
 print('Musical archives successfully parsed.')
-	
+
 
 
 
