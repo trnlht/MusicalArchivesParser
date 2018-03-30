@@ -17,7 +17,7 @@ import os
 import patoolib
 import shutil
 import re
-
+import unidecode
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -135,7 +135,9 @@ def parseMusicalArchive(archivePath):
 def parseMusicalArchives(workingDir):
     for file in os.listdir(workingDir):
         if file.endswith('.zip') or file.endswith('.rar') or file.endswith('.7z'):
-            archivePath = workingDir + '\\' + file
+            asciiFile = unidecode.unidecode(file)  # Преобразуем имя файла в ascii и переименовываем его
+            os.rename(workingDir + '\\' + file, workingDir + '\\' + asciiFile)
+            archivePath = workingDir + '\\' + asciiFile
             parseMusicalArchive(archivePath)
 
 #----------------------------------------------------------------------------------------------------------------------------------			
