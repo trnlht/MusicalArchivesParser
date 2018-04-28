@@ -7,7 +7,6 @@
 # TODO Добавить консольный интерфейс (?)
 # TODO Если в извлекаемой папке несколько папок с мп3?
 # TODO Рефакторинг
-# TODO Добавить обработку ошибок
 # TODO Перевести все комментарии на английский
 # TODO Добавить файл ридми
 
@@ -49,7 +48,7 @@ def getYearFromMp3Tags(tags):
 # Функция получает название группы из тегов mp3 файла
 def getBandFromMp3Tags(tags):
     if 'ARTIST' in tags and tags['ARTIST'] != [] and tags['ARTIST'][0] != '':
-        return tags['ARTIST'][0].title()
+        return tags['ARTIST'][0].title().replace('/','-')
     else:
         return ''
 
@@ -58,7 +57,7 @@ def getBandFromMp3Tags(tags):
 # Функция получает название альбома из тегов mp3 файла
 def getAlbumFromMp3Tags(tags):
     if 'ALBUM' in tags and tags['ALBUM'] != [] and tags['ALBUM'][0] != '':
-        return tags['ALBUM'][0].title()
+        return tags['ALBUM'][0].title().replace('/','-')
     else:
         return ''
 
@@ -130,7 +129,8 @@ def parseMusicalArchive(archivePath):
     else:
         print('Warning: There is no folder with mp3 in ' + folderPath)
 
-
+#----------------------------------------------------------------------------------------------------------------------------------
+		
 # Функция парсит все архивы в рабочем каталоге
 def parseMusicalArchives(workingDir):
     for file in os.listdir(workingDir):
