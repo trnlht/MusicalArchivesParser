@@ -124,7 +124,7 @@ def parseMusicalArchive(archivePath):
             os.mkdir(albumPath)
             moveFiles(mp3FolderPath, albumPath)  # Перемещаем файлы в новую папку
             shutil.rmtree(folderPath)  # Удаляем старую папку
-        else:
+    else:
             print('Warning: Can not extract album params from ' + mp3FolderPath + '. This folder will not be parsed!')
     else:
         print('Warning: There is no folder with mp3 in ' + folderPath)
@@ -142,15 +142,16 @@ def parseMusicalArchives(workingDir):
 
 #----------------------------------------------------------------------------------------------------------------------------------			
 
-# Получение на вход пути к каталогу (или работа в каталоге, где запущен скрипт)
-workingDir = os.getcwd()
+if __name__ == "__main__":
+    # Получение на вход пути к каталогу (или работа в каталоге, где запущен скрипт)
+    workingDir = os.getcwd()
 
-if len(sys.argv) > 1:
-    workingDir = sys.argv[1]
+    if len(sys.argv) > 1:
+        workingDir = sys.argv[1]
 
-parseMusicalArchives(workingDir)
+    parseMusicalArchives(workingDir)
 
-print('Musical archives successfully parsed.')
+    print('Musical archives successfully parsed.')
 
 
 
