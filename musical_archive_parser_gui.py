@@ -30,7 +30,11 @@ def on_select_btn_click():
         ent.insert(0, directory)
 
 def on_extract_btn_click():
-    parser_output = os.popen("python -u musicalArchivesParser.py", "r")
+    
+    # Чтение пути к папке из поля ввода и передача его запускаемому скрипту 
+    archives_path = ent.get()
+
+    parser_output = os.popen("python -u musicalArchivesParser.py " + ent.get(), "r")
     _thread.start_new_thread(parser_output_reader, (parser_output,))
     parser_output_writer(root)
 
