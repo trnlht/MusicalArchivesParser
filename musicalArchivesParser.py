@@ -9,6 +9,7 @@
 # TODO Рефакторинг
 # TODO Перевести все комментарии на английский
 # TODO Добавить файл ридми
+# TODO Добавить вывод общего числа успешно распакованных архивов и числа архивов, которые не удалось распаковать
 
 import taglib
 import sys
@@ -124,21 +125,36 @@ def parseMusicalArchive(archivePath):
             os.mkdir(albumPath)
             moveFiles(mp3FolderPath, albumPath)  # Перемещаем файлы в новую папку
             shutil.rmtree(folderPath)  # Удаляем старую папку
+			
+            return True
         else:
             print('Warning: Can not extract album params from ' + mp3FolderPath + '. This folder will not be parsed!')
     else:
         print('Warning: There is no folder with mp3 in ' + folderPath)
+		
+    return False
 
 #----------------------------------------------------------------------------------------------------------------------------------
 		
 # Функция парсит все архивы в рабочем каталоге
 def parseMusicalArchives(workingDir):
+    
+    extracted = 0
+    failed = 0
+    
     for file in os.listdir(workingDir):
         if file.endswith('.zip') or file.endswith('.rar') or file.endswith('.7z'):
             asciiFile = unidecode.unidecode(file)  # Преобразуем имя файла в ascii и переименовываем его
             os.rename(workingDir + '\\' + file, workingDir + '\\' + asciiFile)
             archivePath = workingDir + '\\' + asciiFile
-            parseMusicalArchive(archivePath)
+            if parseMusicalArchive(archivePath):
+                extracted += 1
+            else:
+                failed += 1
+	
+    print("--------------------------------------------------------------------------------------------------")
+    print("Extracted: ", extracted)
+    print("Failed: ", failed)
 
 #----------------------------------------------------------------------------------------------------------------------------------			
 
@@ -151,7 +167,7 @@ if __name__ == "__main__":
 
     parseMusicalArchives(workingDir)
 
-    print('Musical archives successfully parsed.')
+    #print('Musical archives successfully parsed.')
 
 
 

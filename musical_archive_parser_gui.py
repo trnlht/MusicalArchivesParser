@@ -1,8 +1,10 @@
 from tkinter import *
 from tkinter.scrolledtext import ScrolledText
 from tkinter.filedialog import askdirectory
+from subprocess import Popen, PIPE
 import _thread 
 import os, queue
+import pdb
 
 def parser_output_reader(parser_output):
     while True:
@@ -33,9 +35,8 @@ def on_extract_btn_click():
     
     # Чтение пути к папке из поля ввода и передача его запускаемому скрипту 
     archives_path = ent.get()
-
-    parser_output = os.popen("python -u musicalArchivesParser.py " + ent.get(), "r")
-    _thread.start_new_thread(parser_output_reader, (parser_output,))
+    p = Popen(["python", "-u", "musicalArchivesParser.py", archives_path], stdout=PIPE)
+    _thread.start_new_thread(parser_output_reader, (p.stdout,))
     parser_output_writer(root)
 
 msg_queue = queue.Queue()
@@ -57,7 +58,7 @@ ent.pack(side=TOP, expand=YES, fill=X)
 entry_row.pack(side=TOP, fill=X)
 
 
-st = ScrolledText(root)
+st = ScrolledText(root, wrap=NONE)
 st.pack(side=TOP, expand=YES, fill=BOTH)
 
 
