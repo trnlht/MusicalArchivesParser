@@ -6,63 +6,67 @@ import _thread
 import os, queue
 import pdb
 
-def parser_output_reader(parser_output):
-    while True:
-        line = parser_output.readline()
-        msg_queue.put(line)
-        if not line:
-            break
+#TODO Добавить горизонтальный скролл
+#TODO Проверять путь к папке перед извлечением (?)
 
-def parser_output_writer(root):
-    try:
-        line = msg_queue.get(block=False)
-    except queue.Empty:
-        pass
-    else:
-        if not line:
-            st.insert(END, "<end>")
-            return
-        st.insert(END, line)
-    root.after(250, lambda: parser_output_writer(root))
+class MusicalArchivesParserGui(Frame):
+    def __init__(self, parent=None):
+        Frame.__init__(self, parent)
+        self.pack(expand=YES, fill=BOTH)
+        self.create_widgets()
+        self.master.title("Musical archives parser")
+        self.msg_queue = queue.Queue()
+
+    def create_widgets(self):
+        entry_row = Frame(self)
+
+        select_btn = Button(entry_row, text="...", command=self.on_select_btn_click)
+        select_btn.pack(side=RIGHT)
+
+        ent_name = Label(entry_row, text="Directory:")
+        ent_name.pack(side=LEFT)
+
+        self.ent = Entry(entry_row)
+        self.ent.pack(side=TOP, expand=YES, fill=X)
+
+        entry_row.pack(side=TOP, fill=X)
+
+        self.st = ScrolledText(self, wrap=NONE)
+        self.st.pack(side=TOP, expand=YES, fill=BOTH)
+
+        extract_btn = Button(self, text="Extract", command=self.on_extract_btn_click)
+        extract_btn.pack(side=LEFT)
+
+    def parser_output_reader(self, parser_output):
+        while True:
+            line = parser_output.readline()
+            self.msg_queue.put(line)
+            if not line:
+                break
+
+    def parser_output_writer(self):
+        try:
+            line = self.msg_queue.get(block=False)
+        except queue.Empty:
+            pass
+        else:
+            if not line:
+                return
+            self.st.insert(END, line)
+        self.after(250, lambda: self.parser_output_writer())
+
+    def on_select_btn_click(self):
+        directory = askdirectory()
+        if directory != None:
+            self.ent.insert(0, directory)
+
+    def on_extract_btn_click(self):
+        # Чтение пути к папке из поля ввода и передача его запускаемому скрипту 
+        archives_path = self.ent.get()
+        p = Popen(["python", "-u", "musicalArchivesParser.py", archives_path], stdout=PIPE)
+        _thread.start_new_thread(self.parser_output_reader, (p.stdout,))
+        self.parser_output_writer()
 
 
-def on_select_btn_click():
-    directory = askdirectory()
-    if directory != None:
-        ent.insert(0, directory)
-
-def on_extract_btn_click():
-    
-    # Чтение пути к папке из поля ввода и передача его запускаемому скрипту 
-    archives_path = ent.get()
-    p = Popen(["python", "-u", "musicalArchivesParser.py", archives_path], stdout=PIPE)
-    _thread.start_new_thread(parser_output_reader, (p.stdout,))
-    parser_output_writer(root)
-
-msg_queue = queue.Queue()
-
-root = Tk()
-root.title("Musical archives parser")
-
-entry_row = Frame(root)
-
-select_btn = Button(entry_row, text="...", command=on_select_btn_click)
-select_btn.pack(side=RIGHT)
-
-ent_name = Label(entry_row, text="Directory:")
-ent_name.pack(side=LEFT)
-
-ent = Entry(entry_row)
-ent.pack(side=TOP, expand=YES, fill=X)
-
-entry_row.pack(side=TOP, fill=X)
-
-
-st = ScrolledText(root, wrap=NONE)
-st.pack(side=TOP, expand=YES, fill=BOTH)
-
-
-extract_btn = Button(root, text="Extract", command=on_extract_btn_click)
-extract_btn.pack(side=LEFT)
-
-root.mainloop()
+if __name__ == "__main__":
+    MusicalArchivesParserGui().mainloop()
