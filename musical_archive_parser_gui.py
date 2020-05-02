@@ -6,7 +6,7 @@ import _thread
 import os, queue
 import pdb
 
-#TODO Добавить горизонтальный скролл
+#TODO Добавить горизонтальный скролл в ScrolledText из tkinter (?)
 #TODO Проверять путь к папке перед извлечением (?)
 
 class MusicalArchivesParserGui(Frame):
@@ -31,8 +31,24 @@ class MusicalArchivesParserGui(Frame):
 
         entry_row.pack(side=TOP, fill=X)
 
-        self.st = ScrolledText(self, wrap=NONE)
-        self.st.pack(side=TOP, expand=YES, fill=BOTH)
+        text_frame = Frame(self)
+        self.text = Text(text_frame, wrap="none")
+        vbar = Scrollbar(text_frame)
+        hbar = Scrollbar(text_frame, orient="horizontal")
+
+        vbar.pack(side=RIGHT, fill=Y)
+        hbar.pack(side=BOTTOM, fill=X)
+        self.text.pack(side=TOP, fill=BOTH, expand=YES)
+
+        self.text.config(yscrollcommand=vbar.set)
+        self.text.config(xscrollcommand=hbar.set)
+        vbar.config(command=self.text.yview)
+        hbar.config(command=self.text.xview)
+
+        text_frame.pack(side=TOP, expand=YES, fill=BOTH)
+        
+        # self.st = ScrolledText(self, wrap=NONE)
+        # self.st.pack(side=TOP, expand=YES, fill=BOTH)
 
         extract_btn = Button(self, text="Extract", command=self.on_extract_btn_click)
         extract_btn.pack(side=LEFT)
@@ -52,7 +68,7 @@ class MusicalArchivesParserGui(Frame):
         else:
             if not line:
                 return
-            self.st.insert(END, line)
+            self.text.insert(END, line)
         self.after(250, lambda: self.parser_output_writer())
 
     def on_select_btn_click(self):
