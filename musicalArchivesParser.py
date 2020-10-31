@@ -9,7 +9,6 @@
 # TODO Рефакторинг
 # TODO Перевести все комментарии на английский
 # TODO Добавить файл ридми
-# TODO Добавить вывод общего числа успешно распакованных архивов и числа архивов, которые не удалось распаковать
 
 import taglib
 import sys
@@ -92,7 +91,7 @@ def findMp3Path(folderPath):
 def getAlbumParamsFromMp3FolderPath(mp3FolderPath):
     for file in os.listdir(mp3FolderPath):
         if file.endswith('.mp3'):
-            albumParams = getAlbumParamsFromMp3(mp3FolderPath + '\\' + file)
+            albumParams = getAlbumParamsFromMp3(mp3FolderPath + os.sep + file)
             return albumParams
     return {}
 
@@ -101,13 +100,13 @@ def getAlbumParamsFromMp3FolderPath(mp3FolderPath):
 # Функция перемещает все файлы из одной папки в другую
 def moveFiles(srcDir, dstDir):
     for file in os.listdir(srcDir):
-        shutil.move(srcDir + '\\' + file, dstDir)
+        shutil.move(srcDir + os.sep + file, dstDir)
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
 # Функция распаковывает архив, извлекает из распакованной папки данные вида Группа/Год/Альбом, создаёт структуру папок вида Группа/Год - Альбом и перемещает туда файлы, старая папка удаляется
 def parseMusicalArchive(archivePath):
-    folderPath = os.path.splitext(archivePath)[0]  # Папка для распаковки (удаляем расширение)
+    folderPath = os.path.splitext(archivePath)[0] + "_unpacked"  # Папка для распаковки (удаляем расширение)
     os.mkdir(folderPath)
     try:
         patoolib.extract_archive(archivePath, outdir=folderPath)
@@ -118,10 +117,10 @@ def parseMusicalArchive(archivePath):
     if mp3FolderPath != '':
         albumParams = getAlbumParamsFromMp3FolderPath(mp3FolderPath)  # Получаем параметры альбома
         if albumParams != {}:
-            bandPath = workingDir + '\\' + albumParams['BAND']  # Создаём папку с группой, если её ещё нет
+            bandPath = workingDir + os.sep + albumParams['BAND']  # Создаём папку с группой, если её ещё нет
             if not os.path.exists(bandPath):
                 os.mkdir(bandPath)
-            albumPath = bandPath + '\\' + albumParams['YEAR'] + ' - ' + albumParams['ALBUM']  # Создаём папку с альбомом
+            albumPath = bandPath + os.sep + albumParams['YEAR'] + ' - ' + albumParams['ALBUM']  # Создаём папку с альбомом
             os.mkdir(albumPath)
             moveFiles(mp3FolderPath, albumPath)  # Перемещаем файлы в новую папку
             shutil.rmtree(folderPath)  # Удаляем старую папку
@@ -145,8 +144,8 @@ def parseMusicalArchives(workingDir):
     for file in os.listdir(workingDir):
         if file.endswith('.zip') or file.endswith('.rar') or file.endswith('.7z'):
             asciiFile = unidecode.unidecode(file)  # Преобразуем имя файла в ascii и переименовываем его
-            os.rename(workingDir + '\\' + file, workingDir + '\\' + asciiFile)
-            archivePath = workingDir + '\\' + asciiFile
+            os.rename(workingDir + os.sep + file, workingDir + os.sep + asciiFile)
+            archivePath = workingDir + os.sep + asciiFile
             if parseMusicalArchive(archivePath):
                 extracted += 1
             else:
