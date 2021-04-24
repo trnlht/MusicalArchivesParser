@@ -111,7 +111,9 @@ def parseMusicalArchive(archivePath):
     try:
         patoolib.extract_archive(archivePath, outdir=folderPath)
     except Exception as e:
-        print('Warning: ' + str(e))
+        print("Exception caught while extracting archive: " + archivePath)
+        print("Exception: " + str(e))
+        return False
     # os.remove(archivePath)
     mp3FolderPath = findMp3Path(folderPath)  # Находим папку с mp3 в извлеченной папке
     if mp3FolderPath != '':
